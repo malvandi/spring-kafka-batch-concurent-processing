@@ -1,0 +1,70 @@
+package com.blu.kafka.service
+
+import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Async
+import org.springframework.stereotype.Service
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.random.Random
+
+@Service
+class WorkService {
+
+    private var startTime: AtomicLong? = null
+    private var endTime = AtomicLong(System.nanoTime())
+    private var successCounter = AtomicLong(0)
+    private var failureCounter = AtomicLong(0)
+
+    private val latency = 50L
+    private val successRatio = 80
+
+    private val receivedMessageCounter: MutableMap<String, Int> = ConcurrentHashMap()
+    private val successMessagesCounter: MutableMap<String, Int> = ConcurrentHashMap()
+    private val failureMessagesCounter: MutableMap<String, Int> = ConcurrentHashMap()
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
+    @Async
+    fun doWork(batchId: Int, message: String): CompletableFuture<String> {
+        startTime = startTime ?: AtomicLong(System.nanoTime())
+
+        receivedMessageCounter[message] = receivedMessageCounter.getOrDefault(message, 0) + 1
+//        logger.info("processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+        Thread.sleep(latency)
+
+        endTime = AtomicLong(System.nanoTime())
+
+        val random = Random.nextInt(0, 100)
+//        val random = 99
+        if (random > successRatio) {
+            failureMessagesCounter[message] = failureMessagesCounter.getOrDefault(message, 0) + 1
+            failureCounter.incrementAndGet()
+//            logger.error("Failed processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+            throw RuntimeException("Failed to process message: `$message`")
+        }
+
+        successMessagesCounter[message] = successMessagesCounter.getOrDefault(message, 0) + 1
+        successCounter.incrementAndGet()
+        return CompletableFuture.completedFuture("Done")
+    }
+
+    fun logFinalResult() {
+        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<< Result >>>>>>>>>>>>>>>>>>>>")
+        logger.info("Success: ${successCounter.get()}")
+        logger.info("Failure: ${failureCounter.get()}")
+        val totalReceived = receivedMessageCounter.values.sum()
+        val totalSuccesses = successMessagesCounter.values.sum()
+        val totalFailures = failureMessagesCounter.values.sum()
+        logger.info("Total Received By Map: $totalReceived -> Max Received: ${receivedMessageCounter.maxBy { it.value }}")
+        logger.info("Total success By Map: $totalSuccesses -> Max Success: ${successMessagesCounter.maxBy { it.value }}")
+        logger.info("Total failures By Map: $totalFailures -> Max failures: ${failureMessagesCounter.maxBy { it.value }}")
+5
+        logger.info("Total processed: ${successCounter.get() + failureCounter.get()}")
+        logger.info("Expected ratio: $successRatio : Final Ratio: ${(successCounter.get() * 100) / (successCounter.get() + failureCounter.get())}")
+
+        val elapsedTime = (endTime.get() - startTime!!.get()) / 1_000_000
+        logger.info("Elapsed Time: $elapsedTime ms")
+
+    }
+}
