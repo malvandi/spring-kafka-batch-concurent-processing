@@ -1,7 +1,7 @@
 package com.blu.kafka.service
 
+import com.blu.kafka.exception.RetryableException
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -16,7 +16,7 @@ class WorkService {
     private var successCounter = AtomicLong(0)
     private var failureCounter = AtomicLong(0)
 
-    private val latency = 50L
+    private val latency = 500L
     private val successRatio = 80
 
     private val receivedMessageCounter: MutableMap<String, Int> = ConcurrentHashMap()
@@ -25,23 +25,22 @@ class WorkService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Async
     fun doWork(batchId: Int, message: String): CompletableFuture<String> {
+
         startTime = startTime ?: AtomicLong(System.nanoTime())
 
         receivedMessageCounter[message] = receivedMessageCounter.getOrDefault(message, 0) + 1
-//        logger.info("processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+        logger.info("processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
         Thread.sleep(latency)
 
         endTime = AtomicLong(System.nanoTime())
 
         val random = Random.nextInt(0, 100)
-//        val random = 99
         if (random > successRatio) {
             failureMessagesCounter[message] = failureMessagesCounter.getOrDefault(message, 0) + 1
             failureCounter.incrementAndGet()
-//            logger.error("Failed processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
-            throw RuntimeException("Failed to process message: `$message`")
+            logger.error("Failed processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+            throw RetryableException(message)
         }
 
         successMessagesCounter[message] = successMessagesCounter.getOrDefault(message, 0) + 1

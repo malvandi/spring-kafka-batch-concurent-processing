@@ -1,5 +1,6 @@
 package com.blu.kafka.config
 
+import com.blu.kafka.exception.RetryableException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -8,6 +9,7 @@ import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.scheduling.annotation.EnableAsync
+import org.springframework.util.backoff.BackOff
 import org.springframework.util.backoff.FixedBackOff
 
 
@@ -16,27 +18,29 @@ import org.springframework.util.backoff.FixedBackOff
 class KafkaConsumerConfig @Autowired constructor(
     private val consumerFactory: ConsumerFactory<String, String>
 ) {
-//    @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = consumerFactory
-        factory.isBatchListener = false
-        factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
 
-        val errorHandler = DefaultErrorHandler(FixedBackOff(1000L, 3L))
-        errorHandler.isAckAfterHandle = true
+    @Bean
+    fun batchContainerFactory(errorHandler: DefaultErrorHandler): ConcurrentKafkaListenerContainerFactory<String, String> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
+        factory.isBatchListener = false
+        factory.consumerFactory = consumerFactory
+
+        factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD
 
         factory.setCommonErrorHandler(errorHandler)
         return factory
     }
 
     @Bean
-    fun batchKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.isBatchListener = true
-        factory.consumerFactory = consumerFactory
-//        factory.containerProperties.ackMode = ContainerProperties.AckMode.BATCH
+    fun errorHandler(): DefaultErrorHandler {
+        val fixedBackOff: BackOff = FixedBackOff(1000, 3)
+        val errorHandler = DefaultErrorHandler({ _, exception ->
+            println("**************************************************")
+            exception.printStackTrace()
+        }, fixedBackOff)
+        errorHandler.addRetryableExceptions(RetryableException::class.java)
+        errorHandler.addNotRetryableExceptions(NullPointerException::class.java)
 
-        return factory
+        return errorHandler
     }
 }
