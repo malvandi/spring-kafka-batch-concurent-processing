@@ -18,7 +18,6 @@ class KafkaConsumer @Autowired constructor(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    //    @Async
     @KafkaHandler
     fun consume(@Payload message: String) {
         val batchId = Random.nextInt(10, 100)

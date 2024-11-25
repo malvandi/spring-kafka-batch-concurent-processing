@@ -3,7 +3,6 @@ package com.blu.kafka.service
 import com.blu.kafka.exception.RetryableException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
@@ -25,7 +24,9 @@ class WorkService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    fun doWork(batchId: Int, message: String): CompletableFuture<String> {
+    fun doWork(batchId: Int, message: String) {
+        if(message == "SBM [75]")
+            throw RetryableException(message)
 
         startTime = startTime ?: AtomicLong(System.nanoTime())
 
@@ -45,7 +46,6 @@ class WorkService {
 
         successMessagesCounter[message] = successMessagesCounter.getOrDefault(message, 0) + 1
         successCounter.incrementAndGet()
-        return CompletableFuture.completedFuture("Done")
     }
 
     fun logFinalResult() {

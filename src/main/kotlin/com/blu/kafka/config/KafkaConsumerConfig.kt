@@ -33,11 +33,12 @@ class KafkaConsumerConfig @Autowired constructor(
 
     @Bean
     fun errorHandler(): DefaultErrorHandler {
-        val fixedBackOff: BackOff = FixedBackOff(1000, 3)
+        val fixedBackOff: BackOff = FixedBackOff(1500, 2)
         val errorHandler = DefaultErrorHandler({ _, exception ->
             println("**************************************************")
             exception.printStackTrace()
         }, fixedBackOff)
+
         errorHandler.addRetryableExceptions(RetryableException::class.java)
         errorHandler.addNotRetryableExceptions(NullPointerException::class.java)
 
