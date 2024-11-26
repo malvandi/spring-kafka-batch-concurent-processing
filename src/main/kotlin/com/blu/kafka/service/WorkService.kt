@@ -3,7 +3,6 @@ package com.blu.kafka.service
 import com.blu.kafka.exception.RetryableException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
@@ -25,11 +24,13 @@ class WorkService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    //    @Async
     fun doWork(batchId: Int, message: String) {
         startTime = startTime ?: AtomicLong(System.nanoTime())
 
         receivedMessageCounter[message] = receivedMessageCounter.getOrDefault(message, 0) + 1
-        logger.info("processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+        val latency = getRandomLatency().toLong()
+        logger.info("processing message: {batchId: $batchId, message: '$message', Latency: $latency} in thread ${Thread.currentThread().name}")
         Thread.sleep(latency)
 
         endTime = AtomicLong(System.nanoTime())
@@ -46,7 +47,7 @@ class WorkService {
         successCounter.incrementAndGet()
     }
 
-    fun doFutureWork(batchId: Int, message: String): CompletableFuture<String> {
+    /*fun doFutureWork(batchId: Int, message: String): CompletableFuture<String> {
         val completableFuture = CompletableFuture<String>()
 
         startTime = startTime ?: AtomicLong(System.nanoTime())
@@ -71,7 +72,7 @@ class WorkService {
         successCounter.incrementAndGet()
         completableFuture.complete("Success")
         return completableFuture
-    }
+    }*/
 
     fun logFinalResult() {
         logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<< Result >>>>>>>>>>>>>>>>>>>>")
@@ -83,7 +84,7 @@ class WorkService {
         logger.info("Total Received By Map: $totalReceived -> Max Received: ${receivedMessageCounter.maxBy { it.value }}")
         logger.info("Total success By Map: $totalSuccesses -> Max Success: ${successMessagesCounter.maxBy { it.value }}")
         logger.info("Total failures By Map: $totalFailures -> Max failures: ${failureMessagesCounter.maxBy { it.value }}")
-5
+        5
         logger.info("Total processed: ${successCounter.get() + failureCounter.get()}")
         logger.info("Expected ratio: $successRatio : Final Ratio: ${(successCounter.get() * 100) / (successCounter.get() + failureCounter.get())}")
 
@@ -91,4 +92,6 @@ class WorkService {
         logger.info("Elapsed Time: $elapsedTime ms")
 
     }
+
+    private fun getRandomLatency(): Int = (Random.nextInt(1000, 3000)/ 1000) * 1000
 }

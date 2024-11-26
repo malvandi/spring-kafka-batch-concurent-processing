@@ -1,6 +1,7 @@
 package com.blu.kafka.config
 
 import com.blu.kafka.exception.RetryableException
+import com.blu.kafka.model.KafkaMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,16 +17,34 @@ import org.springframework.util.backoff.FixedBackOff
 @EnableAsync
 @Configuration
 class KafkaConsumerConfig @Autowired constructor(
-    private val consumerFactory: ConsumerFactory<String, String>
+    private val consumerFactory: ConsumerFactory<String, KafkaMessage>
 ) {
 
+    /*@Bean
+    fun consumerFactory(): ConsumerFactory<String, KafkaMessage> {
+        val configProps = mapOf(
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092",
+            ConsumerConfig.GROUP_ID_CONFIG to "mf-kafka-group-id",
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
+            JsonDeserializer.TRUSTED_PACKAGES to "*"
+        )
+        return DefaultKafkaConsumerFactory(
+            configProps,
+            StringDeserializer(),
+            JsonDeserializer(KafkaMessage::class.java)
+        )
+    }*/
+
     @Bean
-    fun batchContainerFactory(errorHandler: DefaultErrorHandler): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.isBatchListener = false
+    fun batchContainerFactory(
+        errorHandler: DefaultErrorHandler
+    ): ConcurrentKafkaListenerContainerFactory<String, KafkaMessage> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, KafkaMessage>()
+        factory.isBatchListener = true
         factory.consumerFactory = consumerFactory
 
-        factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD
+        factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
 
         factory.setCommonErrorHandler(errorHandler)
         return factory
