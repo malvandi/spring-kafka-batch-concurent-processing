@@ -3,6 +3,7 @@ package com.blu.kafka.service
 import com.blu.kafka.exception.RetryableException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
@@ -25,9 +26,6 @@ class WorkService {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun doWork(batchId: Int, message: String) {
-        if(message == "SBM [75]")
-            throw RetryableException(message)
-
         startTime = startTime ?: AtomicLong(System.nanoTime())
 
         receivedMessageCounter[message] = receivedMessageCounter.getOrDefault(message, 0) + 1
@@ -46,6 +44,33 @@ class WorkService {
 
         successMessagesCounter[message] = successMessagesCounter.getOrDefault(message, 0) + 1
         successCounter.incrementAndGet()
+    }
+
+    fun doFutureWork(batchId: Int, message: String): CompletableFuture<String> {
+        val completableFuture = CompletableFuture<String>()
+
+        startTime = startTime ?: AtomicLong(System.nanoTime())
+
+        receivedMessageCounter[message] = receivedMessageCounter.getOrDefault(message, 0) + 1
+        logger.info("processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+        Thread.sleep(latency)
+
+        endTime = AtomicLong(System.nanoTime())
+
+        val random = Random.nextInt(0, 100)
+        if (random > successRatio) {
+            failureMessagesCounter[message] = failureMessagesCounter.getOrDefault(message, 0) + 1
+            failureCounter.incrementAndGet()
+            logger.error("Failed processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
+            completableFuture.completeExceptionally(RetryableException(message))
+            return completableFuture
+//            throw RetryableException(message)
+        }
+
+        successMessagesCounter[message] = successMessagesCounter.getOrDefault(message, 0) + 1
+        successCounter.incrementAndGet()
+        completableFuture.complete("Success")
+        return completableFuture
     }
 
     fun logFinalResult() {

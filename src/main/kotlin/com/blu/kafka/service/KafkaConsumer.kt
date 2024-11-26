@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.annotation.KafkaHandler
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.messaging.handler.annotation.Payload
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
+import java.util.concurrent.CompletableFuture
 import kotlin.random.Random
 
 
@@ -18,10 +20,11 @@ class KafkaConsumer @Autowired constructor(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    @Async
     @KafkaHandler
-    fun consume(@Payload message: String) {
+    fun consume(@Payload message: String): CompletableFuture<String> {
         val batchId = Random.nextInt(10, 100)
         logger.info("Received new Messages: {batchId: $batchId, messages: $message}")
-        workService.doWork(batchId, message)
+        return workService.doFutureWork(batchId, message)
     }
 }
