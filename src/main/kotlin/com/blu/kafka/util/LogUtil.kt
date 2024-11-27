@@ -12,7 +12,6 @@ class LogUtil {
         }
 
         fun init(builder: LoggingEventBuilder, message: String, vararg arguments: Any?): LoggingEventBuilder {
-            builder.setMessage(message)
             val mapArguments = mutableMapOf<String, Any?>()
             for (index in arguments.indices step 2) {
                 mapArguments[arguments[index]?.toString() ?: "null"] =

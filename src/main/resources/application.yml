@@ -25,7 +25,6 @@ spring:
   threads:
     virtual:
       enabled: false
-
 #logging:
 #  level:
 #    org:
@@ -34,4 +33,8 @@ spring:
 #          clients:
 #            consumer: DEBUG
 #      springframework:
+#logging:
+#  structured:
+#    format:
+#      console: ecs
 #        kafka: DEBUG

@@ -4,6 +4,7 @@ import com.blu.kafka.model.KafkaMessage
 import com.blu.kafka.util.LogUtil
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.support.Acknowledgment
+import org.springframework.scheduling.annotation.Async
 import java.io.Serializable
 import java.time.Duration
 import java.util.*
@@ -20,6 +21,7 @@ abstract class KafkaBatchConsumer(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    @Async
     open fun consume(messages: List<KafkaMessage>, acknowledgment: Acknowledgment) {
         val batchId = getBatchId()
         LogUtil.log(
@@ -44,9 +46,11 @@ abstract class KafkaBatchConsumer(
                 LogUtil.log(logger.atError(), "Occur Exception in processing message", "index", index, "message", messages[index])
                 acknowledgment.nack(index, Duration.ZERO)
                 if(exception == null)
-                    exception
+                    exception = e
             }
         }
+        if(exception != null)
+            processedMessages.clear()
     }
 
     fun createJobIfNotProcessed(batchId: Int, message: KafkaMessage): Callable<Any> {

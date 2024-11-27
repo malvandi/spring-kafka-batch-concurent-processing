@@ -19,8 +19,7 @@ class NewKafkaConsumer @Autowired constructor(
     @KafkaHandler
     override fun consume(@Payload messages: List<KafkaMessage>, acknowledgment: Acknowledgment) {
         println("Received new Messages: ${messages.size} => ${messages.toTypedArray().contentToString()}")
-        acknowledgment.acknowledge()
-//        super.consume(messages, acknowledgment)
+        super.consume(messages, acknowledgment)
     }
 
     override fun createJob(batchId: Int, message: KafkaMessage): Callable<Any> {
