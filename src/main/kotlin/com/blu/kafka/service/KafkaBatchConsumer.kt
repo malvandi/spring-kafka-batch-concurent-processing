@@ -33,7 +33,7 @@ abstract class KafkaBatchConsumer(
     protected fun processMessagesConcurrently(batchId: Int, messages: List<KafkaMessage>): List<Boolean> {
         val futures = messages
             .map { message -> createJobIfNotProcessed(batchId, message) }
-            .map { executorService.submit(it) }
+            .map { job -> executorService.submit(job) }
 
         val successDoneStatus = mutableListOf<Boolean>()
         for (index in futures.indices) {
@@ -73,7 +73,6 @@ abstract class KafkaBatchConsumer(
                     "message", message
                 )
             }
-
 
         return createJob(batchId, message)
     }
