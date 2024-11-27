@@ -24,7 +24,6 @@ class WorkService {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    //    @Async
     fun doWork(batchId: Int, message: String) {
         startTime = startTime ?: AtomicLong(System.nanoTime())
 

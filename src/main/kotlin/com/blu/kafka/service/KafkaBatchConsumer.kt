@@ -19,45 +19,46 @@ abstract class KafkaBatchConsumer(
     protected val processedMessages = Collections.synchronizedSet(mutableSetOf<Serializable>())
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-    var lastSuccessId: Int = 0
 
     open fun consume(messages: List<KafkaMessage>, acknowledgment: Acknowledgment) {
-        logger.info("last Success Id: $lastSuccessId => next message: ${messages[0].getId()}")
-        if((lastSuccessId + 1) != messages[0].getId().toString().toInt()) {
-            logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        }
         val batchId = getBatchId()
+
         logReceivedMessages(batchId, messages)
 
+        val doneStatus = processMessagesConcurrently(batchId, messages)
+
+        handleAcknowledgement(doneStatus, acknowledgment)
+    }
+
+    protected fun processMessagesConcurrently(batchId: Int, messages: List<KafkaMessage>): List<Boolean> {
         val futures = messages
             .map { message -> createJobIfNotProcessed(batchId, message) }
             .map { executorService.submit(it) }
 
-        val doneStatus = mutableListOf<Boolean>()
+        val successDoneStatus = mutableListOf<Boolean>()
         for (index in futures.indices) {
             val future = futures[index]
             try {
                 future.get()
                 processedMessages.add(messages[index].getId())
-                doneStatus.add(true)
+                successDoneStatus.add(true)
             } catch (e: Exception) {
                 logFailedProcess(batchId, messages[index], index)
-                doneStatus.add(false)
+                successDoneStatus.add(false)
             }
         }
 
+        return successDoneStatus
+    }
+
+    protected fun handleAcknowledgement(doneStatus: List<Boolean>, acknowledgment: Acknowledgment) {
         val lastTrueIndex = (doneStatus.indexOf(false).takeIf { it != -1 } ?: doneStatus.size) - 1
 
-        if (lastTrueIndex != -1) {
+        if (lastTrueIndex != -1)
             acknowledgment.acknowledge(lastTrueIndex)
-            lastSuccessId = messages[lastTrueIndex].getId().toString().toInt()
-            logger.info("Send Ack for index: $lastTrueIndex")
-        }
 
-        if (lastTrueIndex != doneStatus.size - 1) {
+        if (lastTrueIndex != doneStatus.size - 1)
             acknowledgment.nack(lastTrueIndex + 1, Duration.ZERO)
-            logger.info("Send Nack for index: ${lastTrueIndex + 1}")
-        }
 
     }
 
@@ -68,10 +69,8 @@ abstract class KafkaBatchConsumer(
                 LogUtil.log(
                     logger.atTrace(),
                     "Create empty callable for processed message",
-                    "batchId",
-                    batchId,
-                    "message",
-                    message
+                    "batchId", batchId,
+                    "message", message
                 )
             }
 

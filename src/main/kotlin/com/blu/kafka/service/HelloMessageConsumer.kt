@@ -12,13 +12,12 @@ import java.util.concurrent.Callable
 
 @Service
 @KafkaListener(topics = ["$KAFKA_TOPIC"], groupId = "mf-kafka-group-id", containerFactory = "batchContainerFactory")
-class NewKafkaConsumer @Autowired constructor(
+class HelloMessageConsumer @Autowired constructor(
     private val workService: WorkService
 ): KafkaBatchConsumer() {
 
     @KafkaHandler
     override fun consume(@Payload messages: List<KafkaMessage>, acknowledgment: Acknowledgment) {
-        println("Received new Messages: ${messages.size} => ${messages.toTypedArray().contentToString()}")
         super.consume(messages, acknowledgment)
     }
 

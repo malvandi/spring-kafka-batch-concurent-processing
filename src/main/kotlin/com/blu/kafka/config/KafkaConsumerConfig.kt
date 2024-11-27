@@ -20,22 +20,6 @@ class KafkaConsumerConfig @Autowired constructor(
     private val consumerFactory: ConsumerFactory<String, KafkaMessage>
 ) {
 
-    /*@Bean
-    fun consumerFactory(): ConsumerFactory<String, KafkaMessage> {
-        val configProps = mapOf(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092",
-            ConsumerConfig.GROUP_ID_CONFIG to "mf-kafka-group-id",
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
-            JsonDeserializer.TRUSTED_PACKAGES to "*"
-        )
-        return DefaultKafkaConsumerFactory(
-            configProps,
-            StringDeserializer(),
-            JsonDeserializer(KafkaMessage::class.java)
-        )
-    }*/
-
     @Bean
     fun batchContainerFactory(
         errorHandler: DefaultErrorHandler

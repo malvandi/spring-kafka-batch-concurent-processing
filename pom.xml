@@ -9,16 +9,20 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.blu</groupId>
-	<artifactId>kafka</artifactId>
+	<artifactId>spring-kafka</artifactId>
 	<version>0.0.1</version>
-	<name>kafka</name>
-	<description>Kafka</description>
+
+	<name>spring-kafka</name>
+	<description>Kafka batch messages concurrently processing</description>
 	<url/>
 	<licenses>
 		<license/>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Morteza Malvandi</name>
+			<email>malvandi.m@gmail.com</email>
+		</developer>
 	</developers>
 	<scm>
 		<connection/>
