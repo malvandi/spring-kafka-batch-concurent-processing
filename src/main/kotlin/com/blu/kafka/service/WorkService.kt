@@ -16,7 +16,7 @@ class WorkService {
     private var failureCounter = AtomicLong(0)
 
     private val latency = 500L
-    private val successRatio = 80
+    private val successRatio = 90
 
     private val receivedMessageCounter: MutableMap<String, Int> = ConcurrentHashMap()
     private val successMessagesCounter: MutableMap<String, Int> = ConcurrentHashMap()
@@ -47,33 +47,6 @@ class WorkService {
         successCounter.incrementAndGet()
     }
 
-    /*fun doFutureWork(batchId: Int, message: String): CompletableFuture<String> {
-        val completableFuture = CompletableFuture<String>()
-
-        startTime = startTime ?: AtomicLong(System.nanoTime())
-
-        receivedMessageCounter[message] = receivedMessageCounter.getOrDefault(message, 0) + 1
-        logger.info("processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
-        Thread.sleep(latency)
-
-        endTime = AtomicLong(System.nanoTime())
-
-        val random = Random.nextInt(0, 100)
-        if (random > successRatio) {
-            failureMessagesCounter[message] = failureMessagesCounter.getOrDefault(message, 0) + 1
-            failureCounter.incrementAndGet()
-            logger.error("Failed processing message: {batchId: $batchId, message: '$message'} in thread ${Thread.currentThread().name}")
-            completableFuture.completeExceptionally(RetryableException(message))
-            return completableFuture
-//            throw RetryableException(message)
-        }
-
-        successMessagesCounter[message] = successMessagesCounter.getOrDefault(message, 0) + 1
-        successCounter.incrementAndGet()
-        completableFuture.complete("Success")
-        return completableFuture
-    }*/
-
     fun logFinalResult() {
         logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<< Result >>>>>>>>>>>>>>>>>>>>")
         logger.info("Success: ${successCounter.get()}")
@@ -93,5 +66,5 @@ class WorkService {
 
     }
 
-    private fun getRandomLatency(): Int = (Random.nextInt(1000, 3000)/ 1000) * 1000
+    private fun getRandomLatency(): Int = 500 //(Random.nextInt(1000, 3000)/ 1000) * 1000
 }
