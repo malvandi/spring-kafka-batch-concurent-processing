@@ -10,20 +10,21 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
     consumer:
       group-id: mf-kafka-group-id
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest
-      max-poll-records: 20
-      enable-auto-commit: true
+      max-poll-records: 5
+      enable-auto-commit: false
+      properties.spring.json.trusted.packages: '*'
 #      properties.partition.assignment.strategy: org.apache.kafka.clients.consumer.RoundRobinAssignor
+
   threads:
     virtual:
       enabled: false
-
 #logging:
 #  level:
 #    org:
@@ -32,4 +33,8 @@ spring:
 #          clients:
 #            consumer: DEBUG
 #      springframework:
+#logging:
+#  structured:
+#    format:
+#      console: ecs
 #        kafka: DEBUG

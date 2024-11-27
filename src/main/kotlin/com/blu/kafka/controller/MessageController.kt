@@ -1,5 +1,6 @@
 package com.blu.kafka.controller
 
+import com.blu.kafka.model.HelloMessage
 import com.blu.kafka.service.KafkaProducer
 import com.blu.kafka.service.WorkService
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,8 +20,11 @@ class MessageController @Autowired constructor(
 
     @PostMapping("/kafka-message")
     fun sendMessage(@RequestParam(required = false) count: Int = 100) {
-        for (i in 1..count)
-            producer.sendMessage("SBM [${++counter}]")
+        for (i in 1..count) {
+//            producer.sendMessage("SBM [${++counter}]")
+            val message = "SBM ${++counter}"
+            producer.sendMessage(HelloMessage(counter.toLong(), message))
+        }
     }
 
     @PostMapping("/kafka-result")
