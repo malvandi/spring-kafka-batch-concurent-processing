@@ -3,6 +3,7 @@ package com.blu.kafka.controller
 import com.blu.kafka.model.HelloMessage
 import com.blu.kafka.service.KafkaProducer
 import com.blu.kafka.service.WorkService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,6 +17,7 @@ class MessageController @Autowired constructor(
     private val workService: WorkService
 ) {
 
+    private val logger = LoggerFactory.getLogger(this::class.java)
     var counter = 0
 
     @PostMapping("/kafka-message")

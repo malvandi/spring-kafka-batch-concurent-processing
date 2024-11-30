@@ -2,8 +2,12 @@ server:
   port: 9090
 
 spring:
+  output:
+    ansi:
+      enabled: always
   application:
     name: Kafka
+    group: card-account
 
 
   kafka:
@@ -33,8 +37,11 @@ spring:
 #          clients:
 #            consumer: DEBUG
 #      springframework:
-#logging:
+
+logging:
+  include-application-name: true
 #  structured:
 #    format:
-#      console: ecs
+#      console: com.blu.kafka.config.ConsoleLogging
+#      console: org.springframework.boot.logging.logback.GraylogExtendedLogFormatStructuredLogFormatter
 #        kafka: DEBUG
