@@ -1,0 +1,8 @@
+spring.kafka:
+  producer:
+    client-id: card-order-processing
+
+  consumer:
+    group-id: mf-kafka-group-id
+    auto-offset-reset: earliest
+    max-poll-records: 10

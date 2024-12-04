@@ -15,7 +15,7 @@ class WorkService {
     private var successCounter = AtomicLong(0)
     private var failureCounter = AtomicLong(0)
 
-    private val latency = 500L
+    private val latency = 5000L
     private val successRatio = 90
 
     private val receivedMessageCounter: MutableMap<String, Int> = ConcurrentHashMap()
@@ -65,5 +65,5 @@ class WorkService {
 
     }
 
-    private fun getRandomLatency(): Int = 500 //(Random.nextInt(1000, 3000)/ 1000) * 1000
+    private fun getRandomLatency(): Int = (Random.nextInt(1000, 3000)/ 1000) * 1000
 }

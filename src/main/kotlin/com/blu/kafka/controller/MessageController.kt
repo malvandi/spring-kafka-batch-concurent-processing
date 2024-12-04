@@ -1,6 +1,7 @@
 package com.blu.kafka.controller
 
 import com.blu.kafka.model.HelloMessage
+import com.blu.kafka.model.OpenAccount
 import com.blu.kafka.service.KafkaProducer
 import com.blu.kafka.service.WorkService
 import org.slf4j.LoggerFactory
@@ -22,10 +23,21 @@ class MessageController @Autowired constructor(
 
     @PostMapping("/kafka-message")
     fun sendMessage(@RequestParam(required = false) count: Int = 100) {
+        println("(((((((((((((((((")
         for (i in 1..count) {
 //            producer.sendMessage("SBM [${++counter}]")
             val message = "SBM ${++counter}"
             producer.sendMessage(HelloMessage(counter.toLong(), message))
+        }
+    }
+
+    @PostMapping("/kafka-card-order")
+    fun createSampleCardOrder(@RequestParam(required = false) count: Int = 100) {
+        println("(((((((((((((((((")
+        for (i in 1..count) {
+//            val message = """{"userDetail":{"filedType":"username","fieldValue":"kyc${++counter}"},"eventDetail":{"vehicle_type":"DETAILED_CAR","key":"payment/vehicle/fee/select-source","timestamp":1732976340839,"inquiry_service_identifier":62}}""".trimIndent()
+            val message = OpenAccount(OpenAccount.UserDetail("username", "kyc${++counter}"))
+            producer.sendMessage(message)
         }
     }
 

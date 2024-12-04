@@ -9,10 +9,10 @@ spring:
     name: Kafka
     group: card-account
 
-
   kafka:
     bootstrap-servers: localhost:9092
     producer:
+      client-id: card-order-processing
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
@@ -40,6 +40,9 @@ spring:
 
 logging:
   include-application-name: true
+  structured:
+    format:
+      file: com.blu
 #  structured:
 #    format:
 #      console: com.blu.kafka.config.ConsoleLogging
